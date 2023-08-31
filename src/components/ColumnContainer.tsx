@@ -1,29 +1,24 @@
-import { useState } from "react";
-import { AiOutlineDelete, AiOutlinePlusCircle } from "react-icons/ai";
+import { AiOutlinePlusCircle } from "react-icons/ai";
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Column, TaskState } from "../types";
-import Task from "./Task";
+
+import TasksContainer from "./TasksContainer";
+import ColumnHeader from "./ColumnHeader";
+import { useState } from "react";
+import useTasks from "../useHooks/useTasks";
 
 interface Props {
   column: Column;
-  state: TaskState[];
+
   deleteColumn: (id: number) => void;
   updateColumn: (id: number, title: string) => void;
-  addTask: (payload: TaskState) => void;
-  deleteTask: (id: number) => void;
 }
 
-function ColumnContainer({
-  column,
-  deleteColumn,
-  updateColumn,
-  addTask,
-  deleteTask,
-  state,
-}: Props) {
+function ColumnContainer({ column, deleteColumn, updateColumn }: Props) {
   const [editTitle, setEditTitle] = useState<boolean>(false);
+  const { state, addTask, deleteTask } = useTasks();
 
   const {
     setNodeRef,
@@ -72,50 +67,17 @@ function ColumnContainer({
       style={style}
       className="bg-slate-800 w-[350px] h-[500px] max-h-[500px] rounded-md flex flex-col"
     >
-      <div
-        className="bg-slate-900
-      h-[60px]
-      cursor-grab
-      rounded-md rounded-b-none p-3 font-bold
-      flex items-center justify-between
-      "
-        {...attributes}
-        {...listeners}
-        onClick={() => setEditTitle(true)}
-      >
-        <div className="flex gap-2 items-center">
-          <div className="flex justify-center items-center bg-slate-800 px-2 py-1 text-sm rounded-full">
-            0
-          </div>
-          {!editTitle && column.title}
-          {editTitle && (
-            <input
-              className="bg-slate-950 focus:border focus:border-rose-500 rounded-sm outline-none px-2 w-4/5"
-              defaultValue={column.title}
-              autoFocus
-              onBlur={() => setEditTitle(false)}
-              onKeyDown={(e) => {
-                if (e.key !== "Enter") return;
-                setEditTitle(false);
-              }}
-              onChange={(e) => updateColumn(column.id, e.target.value)}
-            />
-          )}
-        </div>
-
-        <button
-          className="cursor-pointer text-gray-500 hover:text-white text-2xl"
-          onClick={() => deleteColumn(column.id)}
-        >
-          <AiOutlineDelete />
-        </button>
-      </div>
+      <ColumnHeader
+        attributes={attributes}
+        listeners={listeners}
+        column={column}
+        updateColumn={updateColumn}
+        deleteColumn={deleteColumn}
+        setEditTitle={setEditTitle}
+        editTitle={editTitle}
+      />
       {/* Content */}
-      <div className="flex flex-grow flex-col gap-4 p-2 overflow-x-auto overflow-y-auto">
-        {state.map((task: TaskState) => (
-          <Task key={task.id} task={task} deleteTask={deleteTask} />
-        ))}
-      </div>
+      <TasksContainer state={state} deleteTask={deleteTask} />
 
       {/* Add Task */}
       <button
